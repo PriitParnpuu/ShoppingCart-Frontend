@@ -2,50 +2,82 @@
 <h1 class="text-center">Shopping Cart</h1>
   <h2>Add Product</h2>
   <form @submit.prevent="addProduct" class="row mb-3">
-    <input v-model="newProduct.name" placeholder="Product" class="form-control col" required />
-    <input v-model.number="newProduct.price" type="number" placeholder="Price" class="form-control col" required />
-    <input v-model.number="newProduct.quantity" type="number" placeholder="Qty" class="form-control col" required />
-    <button class="btn btn-primary col">Add</button>
+    <div class="input-group-text col-auto">
+      <input v-model="newProduct.name" placeholder="Product" class="form-control col" required />
+    </div>
+    <div class="input-group-text col-auto">
+      <span class="input-group-text" id="basic-addon1">$</span>
+      <input v-model.number="newProduct.price" type="number" placeholder="Price" class="form-control col" required />
+    </div>
+    <div class="input-group-text col-auto">
+      <input v-model.number="newProduct.quantity" type="number" placeholder="Qty" class="form-control col" required />
+    </div>
+    <div class="input-group-text col-auto">
+      <button class="btn btn-primary col">Add Product</button>
+    </div>
+
   </form>
 
   <h2>Cart Items</h2>
+
+
+  <div class="input-group-text col-auto">
+    <table class="table" style="width:60%">
+      <thead>
+      <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr v-for="item in cartItems" :key="item">
+        <td>{{ item.name }}</td>
+        <td>${{ item.price }}</td>
+        <td>{{ item.quantity }}</td>
+        <td><button @click="removeProduct(item.name)" class="btn btn-danger btn-sm">Remove</button></td>
+      </tr>
+      </tbody>
+    </table>
+
+  </div>
   <table class="table">
     <thead>
     <tr>
-      <th>Product</th>
-      <th>Price</th>
-      <th>Quantity</th>
-      <th>Action</th>
+      <th>Total</th>
+      <th>Tax</th>
+      <th>Total incl. tax</th>
     </tr>
     </thead>
     <tbody>
-    <tr v-for="item in cartItems" :key="item">
-      <td>{{ item.name }}</td>
-      <td>${{ item.price }}</td>
-      <td>{{ item.quantity }}</td>
-      <td><button @click="removeProduct(item.name)" class="btn btn-danger btn-sm">Remove</button></td>
+    <tr>
+      <td>${{ cartTotal.toFixed(2)}}</td>
+      <td>${{ cartTax.toFixed(2)}}</td>
+      <td>${{ taxedTotal.toFixed(2)}}</td>
     </tr>
     </tbody>
-
   </table>
-
-  <h3>Total:</h3><h3>${{ cartTotal.toFixed(2)}}</h3>
 </template>
 
 <script>
 import axios from "axios";
 export default {
   data:() => ({
-    apibase: "http://localhost:8080/api/cart",
+    apibase: "http://localhost:9001/api/cart",
     newProduct: {name: "", price: 0, quantity: 1},
     cartItems:[],
-    cartTotal:0
+    cartTotal:0,
+    cartTax:0,
+    taxedTotal:0
   }),
   methods:{
     fetchCart(){
       axios.all([
         axios.get(`${this.apibase}/cart-items`).then(res => (this.cartItems = res.data)),
         axios.get(`${this.apibase}/cart-total`).then(res => (this.cartTotal = res.data)),
+        axios.get(`${this.apibase}/cart-tax`).then(res => (this.cartTax = res.data)),
+        axios.get(`${this.apibase}/cart-taxedtotal`).then(res => (this.taxedTotal = res.data)),
       ]);
     },
     addProduct() {
